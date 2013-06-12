@@ -3,7 +3,12 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Joe.Security", "Joe.Security.csproj", "{DF1D6ECC-C993-4278-ACCE-C7AA65F0D3FD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Joe.Reflection", "..\..\..\..\Libraries\trunk\Teradata.Reflection\trunk\Joe.Reflection.csproj", "{96A481C0-0AAA-4772-9C48-4584D46CAC30}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{CA95350F-7757-4FA6-BAD0-90EAA59C05B8}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +16,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{96A481C0-0AAA-4772-9C48-4584D46CAC30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{96A481C0-0AAA-4772-9C48-4584D46CAC30}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{96A481C0-0AAA-4772-9C48-4584D46CAC30}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{96A481C0-0AAA-4772-9C48-4584D46CAC30}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DF1D6ECC-C993-4278-ACCE-C7AA65F0D3FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DF1D6ECC-C993-4278-ACCE-C7AA65F0D3FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DF1D6ECC-C993-4278-ACCE-C7AA65F0D3FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
