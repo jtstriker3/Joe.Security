@@ -4,11 +4,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
-using Joe.Initialize;
 
 namespace Joe.Security
 {
-    [Init(Function = "TrySetSecurityFactory")]
     public class SecurityProviderFactory
     {
         protected SecurityProviderFactory()
@@ -35,7 +33,7 @@ namespace Joe.Security
 
         }
 
-        public static void TrySetSecurityFactory()
+        public ISecurityProvider CreateSecurityProviderByLookup()
         {
             try
             {
@@ -43,11 +41,10 @@ namespace Joe.Security
                 var types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(assembly => assembly.GetTypes()).Where(type =>
                     type.IsClass
                     && !type.IsAbstract
-                    && type.GetInterfaces().Where(iface => iface.IsGenericType
-                    && typeof(ISecurityProvider).IsAssignableFrom(iface.GetGenericTypeDefinition())).Count() > 0);
+                    && type.GetInterfaces().Where(iface => typeof(ISecurityProvider).IsAssignableFrom(iface)).Count() > 0);
 
                 if (types.Count() == 1 && Security.Provider == null)
-                    Security.Provider = SecurityProviderFactory.Instance.CreateSecurityProvider(types.Single());
+                    return SecurityProviderFactory.Instance.CreateSecurityProvider(types.Single());
             }
             catch (Exception ex)
             {
@@ -62,6 +59,7 @@ namespace Joe.Security
                     //Do Nothing
                 }
             }
+            return null;
         }
 
     }

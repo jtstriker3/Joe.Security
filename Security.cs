@@ -13,6 +13,7 @@ namespace Joe.Security
         {
             get
             {
+                Provider = Provider ?? SecurityProviderFactory.Instance.CreateSecurityProviderByLookup();
                 return Provider;
             }
         }
@@ -28,7 +29,7 @@ namespace Joe.Security
 
         public Security()
         {
-            if (Provider == null)
+            if (ProviderInstance == null)
                 throw new Exception("You must set the ISecurityProvider of the Security Object.");
 
             DefaultCreate = true;
