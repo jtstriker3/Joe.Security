@@ -8,12 +8,23 @@ namespace Joe.Security
 {
     public class Security : ISecurity
     {
-        public static ISecurityProvider Provider { get; set; }
+        protected internal static ISecurityProvider _provider {get;set;}
+        public static ISecurityProvider Provider
+        {
+            get
+            {
+                _provider = _provider ?? SecurityProviderFactory.Instance.CreateSecurityProviderByLookup();
+                return _provider;
+            }
+            set
+            {
+                _provider = value;
+            }
+        }
         public ISecurityProvider ProviderInstance
         {
             get
             {
-                Provider = Provider ?? SecurityProviderFactory.Instance.CreateSecurityProviderByLookup();
                 return Provider;
             }
         }
@@ -48,10 +59,14 @@ namespace Joe.Security
 
         public virtual void SetCrudReflection<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, Boolean listMode = false)
         {
-            ReflectionHelper.SetEvalProperty(viewModel, "CanCreate", this.CanCreate(getModel, viewModel, listMode));
-            ReflectionHelper.SetEvalProperty(viewModel, "CanRead", this.CanRead(getModel, viewModel, listMode));
-            ReflectionHelper.SetEvalProperty(viewModel, "CanUpdate", this.CanUpdate(getModel, viewModel, listMode));
-            ReflectionHelper.SetEvalProperty(viewModel, "CanDelete", this.CanDelete(getModel, viewModel, listMode));
+            if (ReflectionHelper.TryGetEvalPropertyInfo(typeof(TViewModel), "CanCreate") != null)
+                ReflectionHelper.SetEvalProperty(viewModel, "CanCreate", this.CanCreate(getModel, viewModel, listMode));
+            if (ReflectionHelper.TryGetEvalPropertyInfo(typeof(TViewModel), "CanRead") != null)
+                ReflectionHelper.SetEvalProperty(viewModel, "CanRead", this.CanRead(getModel, viewModel, listMode));
+            if (ReflectionHelper.TryGetEvalPropertyInfo(typeof(TViewModel), "CanUpdate") != null)
+                ReflectionHelper.SetEvalProperty(viewModel, "CanUpdate", this.CanUpdate(getModel, viewModel, listMode));
+            if (ReflectionHelper.TryGetEvalPropertyInfo(typeof(TViewModel), "CanDelete") != null)
+                ReflectionHelper.SetEvalProperty(viewModel, "CanDelete", this.CanDelete(getModel, viewModel, listMode));
         }
 
         public Boolean CanCreate<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, Boolean listMode = false)

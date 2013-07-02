@@ -43,7 +43,7 @@ namespace Joe.Security
                     && !type.IsAbstract
                     && type.GetInterfaces().Where(iface => typeof(ISecurityProvider).IsAssignableFrom(iface)).Count() > 0);
 
-                if (types.Count() == 1 && Security.Provider == null)
+                if (types.Count() == 1 && Security._provider == null)
                     return SecurityProviderFactory.Instance.CreateSecurityProvider(types.Single());
             }
             catch (Exception ex)
