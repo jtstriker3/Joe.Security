@@ -8,6 +8,7 @@ namespace Joe.Security
     public interface ISecurityProvider
     {
         Boolean IsUserInRole(params String[] roles);
+        Boolean IsUserInRole(String userID, params String[] roles);
         String UserID { get; set; }
     }
 }
