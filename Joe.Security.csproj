@@ -35,12 +35,12 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Joe.Caching">
-      <HintPath>packages\Joe.Caching.1.0.3\lib\net40\Joe.Caching.dll</HintPath>
-    </Reference>
-    <Reference Include="Joe.Reflection, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Joe.Caching, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>packages\Joe.Reflection.1.0.2\lib\net40\Joe.Reflection.dll</HintPath>
+      <HintPath>packages\Joe.Caching.1.0.4\lib\net40\Joe.Caching.dll</HintPath>
+    </Reference>
+    <Reference Include="Joe.Reflection">
+      <HintPath>packages\Joe.Reflection.1.0.7\lib\net40\Joe.Reflection.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
