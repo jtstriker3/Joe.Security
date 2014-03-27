@@ -11,15 +11,6 @@ namespace Joe.Security
     {
         protected static IEnumerable<Type> Types { get; set; }
 
-        private static Dictionary<String, Delegate> _createSecurityTypes;
-        protected static Dictionary<String, Delegate> CreateSecurityTypes
-        {
-            get
-            {
-                _createSecurityTypes = _createSecurityTypes ?? new Dictionary<String, Delegate>();
-                return _createSecurityTypes;
-            }
-        }
         private static ISecurityFactory _instance;
         public static ISecurityFactory Instance
         {
@@ -38,16 +29,27 @@ namespace Joe.Security
 
         public virtual ISecurity<TModel> Create<TModel>()
         {
-            //Check to see if we already found the model type
-            if (CreateSecurityTypes.ContainsKey(typeof(TModel).FullName))
+            var key = typeof(TModel).FullName + "Security";
+            var getSecurityTypeDelegate = (Func<Type>)(() =>
             {
-                var compiledLambda = CreateSecurityTypes[typeof(TModel).FullName];
-                if (compiledLambda != null)
-                    return (ISecurity<TModel>)compiledLambda.DynamicInvoke();
-                return null;
+                return GetSecurityType<TModel>();
+            });
+
+            var securityType = (Type)Joe.Caching.Cache.Instance.GetOrAdd(key, new TimeSpan(999, 0, 0), getSecurityTypeDelegate);
+            //Check to see if we already found the model type
+
+            if (securityType != null)
+            {
+                var compiledLambda = Expression.Lambda(Expression.Block(Expression.New(securityType))).Compile();
+                return (ISecurity<TModel>)compiledLambda.DynamicInvoke();
             }
 
-            Type SecurityType = null;
+            return null;
+        }
+
+        private static Type GetSecurityType<TModel>()
+        {
+            Type securityType = null;
             Types = Types ?? AppDomain.CurrentDomain.GetAssemblies().SelectMany(assembly => assembly.GetTypes()).Where(type =>
                 type.IsClass
                 && !type.IsAbstract
@@ -55,22 +57,15 @@ namespace Joe.Security
                 && typeof(ISecurity<>).IsAssignableFrom(iface.GetGenericTypeDefinition())).Count() > 0);
             try
             {
-                SecurityType = SecurityType ?? Types.SingleOrDefault(type => typeof(ISecurity<TModel>).IsAssignableFrom(type));
+                securityType = securityType ?? Types.SingleOrDefault(type => typeof(ISecurity<TModel>).IsAssignableFrom(type));
             }
             catch (Exception ex)
             {
                 throw new Exception(@"Error Creating Security Object. There may be multiple security objects for the model.", ex);
             }
 
-            if (SecurityType != null)
-            {
-                var compiledLambda = Expression.Lambda(Expression.Block(Expression.New(SecurityType))).Compile();
-                CreateSecurityTypes.Add(typeof(TModel).FullName, compiledLambda);
-                return (ISecurity<TModel>)compiledLambda.DynamicInvoke();
-            }
-            else
-                CreateSecurityTypes.Add(typeof(TModel).FullName, null);
-            return null;
+
+            return securityType;
         }
     }
 }
