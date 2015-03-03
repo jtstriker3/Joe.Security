@@ -8,7 +8,7 @@ namespace Joe.Security
 {
     public class Security : ISecurity
     {
-        protected internal static ISecurityProvider _provider {get;set;}
+        protected internal static ISecurityProvider _provider { get; set; }
         public static ISecurityProvider Provider
         {
             get
@@ -49,56 +49,79 @@ namespace Joe.Security
             DefaultDelete = true;
         }
 
-        public virtual void SetCrud<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, Boolean listMode = false)
+        public virtual void SetCrud<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, bool forList)
         {
-            ((ICrud)viewModel).CanCreate = this.CanCreate(getModel, viewModel, listMode);
-            ((ICrud)viewModel).CanRead = this.CanRead(getModel, viewModel, listMode);
-            ((ICrud)viewModel).CanUpdate = this.CanUpdate(getModel, viewModel, listMode);
-            ((ICrud)viewModel).CanDelete = this.CanDelete(getModel, viewModel, listMode);
+            ((ICrud)viewModel).CanCreate = this.CanCreate(getModel, viewModel, forList);
+            ((ICrud)viewModel).CanRead = this.CanRead(getModel, viewModel, forList);
+            ((ICrud)viewModel).CanUpdate = this.CanUpdate(getModel, viewModel, forList);
+            ((ICrud)viewModel).CanDelete = this.CanDelete(getModel, viewModel, forList);
         }
 
-        public virtual void SetCrudReflection<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, Boolean listMode = false)
+        public virtual void SetCrudReflection<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, bool forList)
         {
             if (ReflectionHelper.TryGetEvalPropertyInfo(typeof(TViewModel), "CanCreate") != null)
-                ReflectionHelper.SetEvalProperty(viewModel, "CanCreate", this.CanCreate(getModel, viewModel, listMode));
+                ReflectionHelper.SetEvalProperty(viewModel, "CanCreate", this.CanCreate(getModel, viewModel, forList));
             if (ReflectionHelper.TryGetEvalPropertyInfo(typeof(TViewModel), "CanRead") != null)
-                ReflectionHelper.SetEvalProperty(viewModel, "CanRead", this.CanRead(getModel, viewModel, listMode));
+                ReflectionHelper.SetEvalProperty(viewModel, "CanRead", this.CanRead(getModel, viewModel, forList));
             if (ReflectionHelper.TryGetEvalPropertyInfo(typeof(TViewModel), "CanUpdate") != null)
-                ReflectionHelper.SetEvalProperty(viewModel, "CanUpdate", this.CanUpdate(getModel, viewModel, listMode));
+                ReflectionHelper.SetEvalProperty(viewModel, "CanUpdate", this.CanUpdate(getModel, viewModel, forList));
             if (ReflectionHelper.TryGetEvalPropertyInfo(typeof(TViewModel), "CanDelete") != null)
-                ReflectionHelper.SetEvalProperty(viewModel, "CanDelete", this.CanDelete(getModel, viewModel, listMode));
+                ReflectionHelper.SetEvalProperty(viewModel, "CanDelete", this.CanDelete(getModel, viewModel, forList));
         }
 
-        public Boolean CanCreate<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, Boolean listMode = false)
+        public Boolean CanCreate<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, bool forList)
         {
             SetRoles<TViewModel>();
             if (Roles != null)
-                return (AllRoles || Provider.IsUserInRole(Roles.GetCreateRolesArray()) || OrCreateRules(getModel, viewModel, listMode)) && AndCreateRules(getModel, viewModel, listMode);
-            return DefaultCreate;
+                return (AllRoles || Provider.IsUserInRole(Roles.GetCreateRolesArray()) || OrCreateRules(getModel, viewModel, forList)) && AndCreateRules(getModel, viewModel, forList);
+            else
+                return AndCreateRules(getModel, viewModel, forList);
         }
 
-        public Boolean CanRead<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, Boolean listMode = false)
+        public Boolean CanRead<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, bool forList)
         {
             SetRoles<TViewModel>();
             if (Roles != null)
-                return (AllRoles || Provider.IsUserInRole(Roles.GetReadRolesArray()) || OrReadRules(getModel, viewModel, listMode)) && AndReadRules(getModel, viewModel, listMode);
+                return (AllRoles || Provider.IsUserInRole(Roles.GetReadRolesArray()) || OrReadRules(getModel, viewModel, forList)) && AndReadRules(getModel, viewModel, forList);
+            else
+                return AndReadRules(getModel, viewModel, forList);
+        }
+
+        public Boolean CanUpdate<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, bool forList)
+        {
+            SetRoles<TViewModel>();
+            if (Roles != null)
+                return (AllRoles || Provider.IsUserInRole(Roles.GetUpdateRolesArray()) || OrUpdateRules(getModel, viewModel, forList)) && AndUpdateRules(getModel, viewModel, forList);
+            else
+                return AndUpdateRules(getModel, viewModel, forList);
+        }
+
+        public Boolean CanDelete<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, bool forList)
+        {
+            SetRoles<TViewModel>();
+            if (Roles != null)
+                return (AllRoles || Provider.IsUserInRole(Roles.GetDeleteRolesArray()) || OrDeleteRules(getModel, viewModel, forList)) && AndDeleteRules(getModel, viewModel, forList);
+            else
+                return AndDeleteRules(getModel, viewModel, forList);
+        }
+
+        public IQueryable<TModel> SecureList(IQueryable<TModel> list)
+        {
+            return list;
+        }
+
+        /// <summary>
+        /// This Will Verify The user has the Appropreate Role to Read If Roles Are Set It will not evaluate based of individual ViewModel
+        /// </summary>
+        /// <typeparam name="TViewModel"></typeparam>
+        /// <returns></returns>
+        public Boolean HasReadRights<TViewModel>()
+        {
+            SetRoles<TViewModel>();
+            if (Roles != null)
+                return (AllRoles || Provider.IsUserInRole(Roles.GetReadRolesArray()));
+
             return DefaultRead;
-        }
-
-        public Boolean CanUpdate<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, Boolean listMode = false)
-        {
-            SetRoles<TViewModel>();
-            if (Roles != null)
-                return (AllRoles || Provider.IsUserInRole(Roles.GetUpdateRolesArray()) || OrUpdateRules(getModel, viewModel, listMode)) && AndUpdateRules(getModel, viewModel, listMode);
-            return DefaultUpdate;
-        }
-
-        public Boolean CanDelete<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, Boolean listMode = false)
-        {
-            SetRoles<TViewModel>();
-            if (Roles != null)
-                return (AllRoles || Provider.IsUserInRole(Roles.GetDeleteRolesArray()) || OrDeleteRules(getModel, viewModel, listMode)) && AndDeleteRules(getModel, viewModel, listMode);
-            return DefaultDelete;
         }
 
         private Boolean? _allRoles;
@@ -111,44 +134,44 @@ namespace Joe.Security
             }
         }
 
-        protected virtual Boolean OrCreateRules<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, Boolean listMode = false)
+        protected virtual Boolean OrCreateRules<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, bool forList)
         {
             return false;
         }
 
-        protected virtual Boolean OrReadRules<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, Boolean listMode = false)
+        protected virtual Boolean OrReadRules<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, bool forList)
         {
             return false;
         }
 
-        protected virtual Boolean OrUpdateRules<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, Boolean listMode = false)
+        protected virtual Boolean OrUpdateRules<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, bool forList)
         {
             return false;
         }
 
-        protected virtual Boolean OrDeleteRules<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, Boolean listMode = false)
+        protected virtual Boolean OrDeleteRules<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, bool forList)
         {
             return false;
         }
 
-        protected virtual Boolean AndCreateRules<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, Boolean listMode = false)
+        protected virtual Boolean AndCreateRules<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, bool forList)
         {
-            return true;
+            return DefaultCreate;
         }
 
-        protected virtual Boolean AndReadRules<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, Boolean listMode = false)
+        protected virtual Boolean AndReadRules<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, bool forList)
         {
-            return true;
+            return DefaultRead;
         }
 
-        protected virtual Boolean AndUpdateRules<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, Boolean listMode = false)
+        protected virtual Boolean AndUpdateRules<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, bool forList)
         {
-            return true;
+            return DefaultUpdate;
         }
 
-        protected virtual Boolean AndDeleteRules<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, Boolean listMode = false)
+        protected virtual Boolean AndDeleteRules<TViewModel>(Func<TViewModel, TModel> getModel, TViewModel viewModel, bool forList)
         {
-            return true;
+            return DefaultDelete;
         }
 
         protected virtual void SetRoles<TViewModel>()
